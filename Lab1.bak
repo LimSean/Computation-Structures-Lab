@@ -1,0 +1,17 @@
+.include "C:\Users\Sean Lim\Desktop\50.002 Computation Structure\50002\nominal.jsim"
+.include "C:\Users\Sean Lim\Desktop\50.002 Computation Structure\50002\lab1checkoff.jsim"
+
+
+.subckt F A B C Z
+
+MPDa 1 A 0 0 NENH sw=8 sl=1
+MPDb 3 B 0 0 NENH sw=8 sl=1
+MPDc 1 C 0 0 NENH sw=8 sl=1
+MPDinv Z 1 0 0 NENH sw=8 sl=1
+
+MPUa 1 A 2 vdd PENH sw=8 sl=1
+MPUb 1 B 2 vdd PENH sw=8 sl=1
+MPUc 2 C vdd vdd PENH sw=8 sl=1
+MPUinv Z 1 vdd vdd PENH sw=8 sl=1
+
+.ends

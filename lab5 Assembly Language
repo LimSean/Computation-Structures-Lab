@@ -1,0 +1,127 @@
+.include /50002/beta.uasm
+.include /50002/lab5checkoff.uasm
+
+count_bull_cows: 	| your subroutine must have this name
+PUSH(LP) 		| standard subroutine entry sequence
+PUSH(BP)
+MOVE(SP, BP)
+
+| PUSH any registers (besides R0) used by your code
+PUSH(R1)		|var bulls
+PUSH(R2)		|var cows
+PUSH(R3)		|var a 
+PUSH(R4) 		|var b
+PUSH(R5)		|var i
+PUSH(R6)		|var j
+PUSH(R7)		|var btemp
+PUSH(R8) 		|var atry
+PUSH(R9) 		|var btry
+PUSH(R10) 		|var mask
+PUSH(R11)		|var to hold true/false values
+PUSH(R12)		|var to hold a & mask
+PUSH(R13)		|var to hold b & mask
+PUSH(R14)		|var to hold cows innerloop T/F value
+
+LD(BP,-12,R3)		|a
+LD(BP,-16,R4)		|b
+CMOVE(0,R1)		|int bulls = 0;
+CMOVE(0,R2)		|int cows = 0;
+CMOVE(0xF,R10)		|mask = 0xF = 0b1111
+
+
+CMOVE(0,R5)		|i = 0;
+BR(bullscheck)		|start of bulls check for loop
+
+bullsbody:
+AND(R3,R10,R12)		|a & mask stored in R12
+AND(R4,R10,R13)		|b & mask stored in R13
+
+CMPEQ(R12,R13,R11)	|Store a&mask == b&mask in R11
+BF(R11,bullsfalse,R31)	|If false, skip bullstrue. Both true and false conditions enters the bullsfalse
+bullstrue:
+ADDC(R1,1,R1)		|if true, Bulls ++
+OR(R3,R10,R3)		|a = a | mask
+OR(R4, R10,R4)		|b = b | mask
+
+bullsfalse:
+SHLC(R10,4,R10)		|mask = mask << 4
+
+ADDC(R5,1,R5)		| i += 1;
+
+bullscheck: 
+CMPLTC(R5,4,R11)	|stores i < 4 T/F value in R11
+BT(R11, bullsbody, R31)	|if (i<4) go bullsbody, else, nth
+
+
+CMOVE(0,R5)		|i = 0; for Cows check
+
+BR(cowscheck)		|start of cows check for loop
+
+cowsbody:
+ANDC(R3,0xF,R8)		|atry = a & 0xF;
+SHRC(R3,4,R3)		|a = a>>4;
+
+cowstrue1:		|if this digit wasn't a bull
+CMPEQC(R8,0xF,R11)	|stores atry == 0xF T/F value in R11
+BT(R11,cowscheck,R31)	|if atry == 0xF, Branch to cowscheck
+
+ADDC(R4,0,R7)		|btemp = b;
+CMOVE(0xF,R10)		|mask = 0xF = 0b1111
+CMOVE(0,R6)		|j = 0; for cows inner loop check
+BR(cowsinnercheck)
+
+cowsinnerbody:
+ANDC(R7,0xF,R9)		|btry = btemp & 0xF
+SHRC(R7,4,R7)		|btemp =btemp >>4
+
+CMPEQ(R8,R9,R15)	|store btry==atry in R12
+BF(R15,cowsfalse2,R31)	|if false, go to cowfalse2
+
+cowstrue2:
+ADDC(R2,1,R2)		|cows++;
+OR(R4,R10,R4)		|b = b|mask
+BR(cowscheck)		|break
+
+cowsfalse2:
+SHLC(R10,4,R10)		|mask = mask<<4
+
+cowsinnercheck:
+CMPLTC(R6,4,R14)	|stores j<4 T/F value in R14
+ADDC(R6,1,R6)		|j ++;
+BT(R14,cowsinnerbody,R31)
+
+cowscheck:
+CMPLTC(R5,4,R11)	|stores i < 4 T/F value in R11
+ADDC(R5,1,R5)		|i += 1;
+BT(R11,cowsbody,R31)	|if (i<4) is true, go to cowsbody
+
+
+|Set R0 = bulls<<4 + cows)
+SHLC(R1,4,R1)
+ADD(R1,R2,R0)
+
+
+
+| POP saved registers 
+
+POP(R14)
+POP(R13)		|var b & mask
+POP(R12)		|var a & mask
+POP(R11)		|truth/false value holder
+POP(R10)		|var mask is popped
+POP(R9)			|var btry
+POP(R8)			|var atry
+POP(R7)			|var btemp
+POP(R6)			|var j
+POP(R5)			|var i
+POP(R4)			|var b
+POP(R3)			|var a
+POP(R2)			|var cows
+POP(R1)			|var bulls
+
+MOVE(BP,SP) 		| standard subroutine exit sequence
+POP(BP)
+POP(LP)
+RTN()
+StackBase: LONG(.+4)	| Pointer to bottom of stack
+. = .+0x1000 		| Reserve space for stack...

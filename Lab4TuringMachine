@@ -1,0 +1,51 @@
+// Parenthesis matcher Turing Machine
+// test tapes and checkoff information
+checkoff "10.1.3.26/checkoff/50002assignment.doit" "Lab #4" 1103641864 // this should be at the end of the line above
+
+
+states A B  // list of state names, first is starting state
+symbols ( ) 0 1 2 3 4      // list of symbols (- is blank cell)
+
+//tape test0 -      // initial tape contents, blank in this case
+//result1 test0 0
+
+tape test1 (
+result1 test1 0
+tape test2 )
+result1 test2 0
+tape test3 ( )
+result1 test3 1
+
+tape test4 ) (
+result1 test4 0
+
+tape test5 ( ) ( ) ( ( ( ) ) ( ) ) ) ( )
+result1 test5 0
+
+tape test6 ( ) ( ( ( ) ( ( ( ) ) ( ) ) )
+result1 test6 0
+
+tape test7 ( ) ( ( ) ( ( ( ) ) ( ) ) )
+result1 test7 1
+
+// specify transistions: action state symbol state' write move
+//    state = the current state of the FSM
+//    symbol = the symbol read from the current cell
+//    state' = state on the next cycle 
+//    write = symbol to be written into the current cell
+//    move = tape movement ("l" = left, "r" = right, "-"=stay put)
+//    old  R     new  W M
+action  A   (      B  2 l	//start of every parenthesis check
+action  A   ) *halt*  0 -	//Fail start with wrong parenthesis
+action  A   1 *halt*  - -	//Pass
+action  A   - *halt*  1 -	//Pass end of tape
+action  A   3      A  ( r	//changes 3 back to (
+action  A   2      A  - l	//once it reaches the first 2, it will go leftand continue checking parenthesis again
+action  A   4      A  2 r
+
+action  B   )      A  2 r	//end of every successful parenthesis check
+action  B   - *halt*  0 -	//Fail end of tape
+action  B   (      B  3 l	//changes ( to 3
+action  B   2      B  4 l	//changes 2 to 4 for B
+
+

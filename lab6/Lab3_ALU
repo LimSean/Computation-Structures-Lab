@@ -1,0 +1,99 @@
+*.include "C:\Users\Sean Lim\Desktop\50.002 Computation Structure\50002\nominal.jsim"
+*.include "C:\Users\Sean Lim\Desktop\50.002 Computation Structure\50002\stdcell.jsim"
+*.include "C:\Users\Sean Lim\Desktop\50.002 Computation Structure\50002\lab3shifter.jsim"
+
+*<====>FULL ADDER<=====>*
+.subckt FA a b ci s co
+
+Xxor1 a b p1 xor2
+Xxor2 p1 ci s xor2
+
+Xnand1 a b p2 nand2
+Xnand2 p1 ci p3 nand2
+Xnand3 p2 p3 co nand2
+.ends
+
+
+*<==================>Part A<=======================>*
+
+.subckt overflowcheck a b s v 
+Xsinv s si inverter
+XAinv a ai inverter
+XBinv b bi inverter
+
+X1 a b si x1 and3
+X2 ai bi s x2 and3
+X3 x1 x2 v or2
+.ends 
+
+
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+Xxor B[31:0] ALUFN[0]#32 nB[31:0] xor2
+
+XAdder0 A[0] nB[0] ALUFN[0] s[0] co[0] FA
+XAdder1to31 A[31:1] nB[31:1] co[30:0] s[31:1] co[31:1] FA
+
+Xz1 s[0:7] s[8:15] s[16:23] s[24:31] z1[0:7] nor4
+Xz2 z1[0:1] z1[2:3] z1[4:5] z1[6:7] z2[0:1] and4
+Xz3 z2[0] z2[1] z and2
+
+
+Xv A[31] nB[31] s[31] v overflowcheck
+
+.connect s[31] n
+.ends
+
+
+*<==================>Part B<=====================>
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+XAltB n v LSB1 xor2
+XAlteqB LSB1 z LSB2 or2
+.connect cmp[31:1] 0
+.connect d0 0
+Xcmp32 ALUFN[1] ALUFN[2] d0 z LSB1 LSB2 cmp[0] mux4
+
+.ends
+
+*<==================>Part C<=====================>
+.subckt boole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0]
+Xmx4 A[31:0] B[31:0] ALUFN[0]#32 ALUFN[1]#32 ALUFN[2]#32 ALUFN[3]#32 boole[31:0] mux4
+
+.ends
+
+
+*<==================>Part D<=====================>
+.subckt shift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0]
+
+.connect gnd 0
+XASRcombine A[31] ALUFN[1] Arith2 nand2
+XASRcombineinv Arith2 Arith inverter
+
+XB4 B[4]#32 ALUFN[0]#32 A[31:0]  A[15:0] gnd#16 A[31:0] Arith#16 A[31:16] W[31:0] mux4
+XB3 B[3]#32 ALUFN[0]#32 W[31:0]  W[23:0] gnd#8  W[31:0] Arith#8  W[31:8]  X[31:0] mux4
+XB2 B[2]#32 ALUFN[0]#32 X[31:0]  X[27:0] gnd#4  X[31:0] Arith#4  X[31:4]  Y[31:0] mux4
+XB1 B[1]#32 ALUFN[0]#32 Y[31:0]  Y[29:0] gnd#2  Y[31:0] Arith#2  Y[31:2]  Z[31:0] mux4
+XB0 B[0]#32 ALUFN[0]#32 Z[31:0]  Z[30:0] gnd#1  Z[31:0] Arith#1  Z[31:1]  shift[31:0] mux4
+
+
+.ends
+
+
+
+*<===================>Part E&F<======================>
+
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+Xadd ALUFN[0] A[31:0] B[31:0] aalu[31:0] z v n  adder32
+Xcompare ALUFN[2:1] z v n calu[31:0] compare32
+Xboole ALUFN[3:0] A[31:0] B[31:0] balu[31:0] boole32 
+Xshift ALUFN[1:0] A[31:0] B[4:0] salu[31:0] shift32
+
+Xcombine ALUFN[4]#32 ALUFN[5]#32 aalu[31:0] balu[31:0] salu[31:0] calu[31:0] alu[31:0]  mux4
+.ends
+
+
+
+
+
+
+
